@@ -102,11 +102,9 @@ contract TicketMarketplace is ITicketMarketplace {
         require(ticketCount*events_list[eventId].price_per_ticket <= msg.value,
                 "Not enough funds supplied to buy the specified number of tickets.");
         uint256 nft_id = (uint256(eventId) << 128) + events_list[eventId].next_ticket_to_sell;
-        for(uint128 i = 0; i < ticketCount; i++){
-            ticket_nft.mintFromMarketPlace(msg.sender, nft_id);
-            nft_id++;
-            events_list[eventId].next_ticket_to_sell++;
-        }
+        for(uint128 i = 0; i < ticketCount; i++)
+            ticket_nft.mintFromMarketPlace(msg.sender, nft_id + i);
+        events_list[eventId].next_ticket_to_sell += ticketCount;
         emit TicketsBought(eventId, ticketCount, "ETH");
     }
 
@@ -120,13 +118,10 @@ contract TicketMarketplace is ITicketMarketplace {
         require(ticketCount*events_list[eventId].price_per_ticket_ERC20 <= erc20_coin_address.balanceOf(msg.sender),
                 "Not enough funds supplied to buy the specified number of tickets.");
         uint256 nft_id = (uint256(eventId) << 128) + events_list[eventId].next_ticket_to_sell;
-        for(uint128 i = 0; i < ticketCount; i++){
-            ticket_nft.mintFromMarketPlace(msg.sender, nft_id);
-            nft_id++;
-            events_list[eventId].next_ticket_to_sell++;
-        }
-        uint256 payment = ticketCount*events_list[eventId].price_per_ticket_ERC20;
-        erc20_coin_address.transferFrom(msg.sender, address(this), payment);
+        for(uint128 i = 0; i < ticketCount; i++)
+            ticket_nft.mintFromMarketPlace(msg.sender, nft_id + i);
+        events_list[eventId].next_ticket_to_sell += ticketCount;
+        erc20_coin_address.transferFrom(msg.sender, address(this), ticketCount*events_list[eventId].price_per_ticket_ERC20);
         emit TicketsBought(eventId, ticketCount, "ERC20");
     }
 }
